@@ -7,8 +7,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-}
-  
 <style>
 body{
   margin:0;
@@ -88,8 +86,9 @@ let temps = 0;
 let answered = false;
 
 let musicStarted = false;
+let ctx;
 
-// musique
+// MUSIQUE + AUDIO CONTEXT
 document.body.addEventListener("click", ()=>{
   if(!musicStarted){
     let bgm = document.getElementById("bgm");
@@ -100,8 +99,13 @@ document.body.addEventListener("click", ()=>{
     }
     musicStarted = true;
   }
+
+  if(!ctx){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+  }
 },{once:true});
 
+// INFO TOP
 setInterval(()=>{
   document.getElementById("info").innerHTML =
   "Question "+(q+1)+"/"+quiz.length+
@@ -109,12 +113,31 @@ setInterval(()=>{
   temps++;
 },1000);
 
-// confettis
+// SON MIGNON
+function cuteClickSound(){
+  if(!ctx) return;
+
+  let o = ctx.createOscillator();
+  let g = ctx.createGain();
+
+  o.type = "sine";
+  o.frequency.value = 900;
+
+  g.gain.value = 0.03;
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  o.start();
+  o.stop(ctx.currentTime + 0.08);
+}
+
+// CONFETTIS
 function miniConfetti(){
   confetti({ particleCount: 20, spread: 50, origin:{y:0.6} });
 }
 
-// bonne réponse
 function good(){
   miniConfetti();
 }
@@ -139,8 +162,8 @@ const quiz=[
 {q:"Qui s'est déguisé en pop-corn ?",a:["Guessourilles","Marysmocky","Kakacon"],correct:0,img:"q15.jpg"},
 {q:"Qui a pédalé le plus ?",a:["Maryphil21","Kiwi","Pikachu"],correct:0,img:"q16.jpg"},
 {q:"First To Will Attend 2025 ?",a:["Justnous","Bonnechasse","Coordinatus"],correct:0,img:"q17.jpg"},
-{q:"Doigts écureuils ?",a:["Cricridamour"","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
-{q:"Station service ?",a:["shoot","fina18","Chrisde"],correct:1,img:"q19.jpg"},
+{q:"Doigts écureuils ?",a:["Wragglers","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
+{q:"Station service ?",a:["Cricridamour","fina18","Chrisde"],correct:1,img:"q19.jpg"},
 {q:"Brasseurs ?",a:["Fina18 et Chrisde","Shoot","Djesseling"],correct:0,img:"q20.jpg"},
 {q:"M&G mémorables ?",a:["Marcolo","Olga","Koouye"],correct:2,img:"q21.jpg"}
 
@@ -148,6 +171,7 @@ const quiz=[
 
 function loadQuestion(){
   answered=false;
+
   document.getElementById("feedback").innerHTML="";
   document.getElementById("nextBtn").style.display="none";
 
@@ -170,13 +194,19 @@ function check(i){
   if(answered) return;
   answered=true;
 
+  cuteClickSound();
+
   let c=quiz[q];
   document.querySelectorAll("#answers button").forEach(b=>b.disabled=true);
 
-  if(i!==c.correct){
+  if(i !== c.correct){
     erreurs++;
     document.getElementById("feedback").innerHTML="❌ Mauvaise réponse";
-    document.getElementById("nextBtn").style.display="block";
+
+    setTimeout(()=>{
+      loadQuestion(); // recommence la même question
+    },1000);
+
     return;
   }
 
@@ -193,13 +223,10 @@ function check(i){
 }
 
 function nextQuestion(){
+  cuteClickSound();
   q++;
 
   if(q>=quiz.length){
-
-    let code="ECHEC";
-    if(score>=9) code="LYNX1940";
-    else if(score>=7) code="RESISTANCE";
 
     document.getElementById("question").innerHTML="🏁 FIN DU QUIZ";
     document.getElementById("answers").innerHTML="";
@@ -208,7 +235,7 @@ function nextQuestion(){
     document.getElementById("result").innerHTML=
     "Score : "+score+"/"+quiz.length;
 
-    confetti({particleCount:100,spread:80});
+    confetti({particleCount:120, spread:90});
     return;
   }
 
