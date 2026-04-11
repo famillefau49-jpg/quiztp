@@ -1,3 +1,10 @@
+let q = 0;
+let score = 0;
+let erreurs = 0;
+let temps = 0;
+let answered = false;
+
+// QUESTIONS
 const quiz=[
 {
 q:"En quelle année a eu lieu le 1er Trou Perdu ?",
@@ -72,3 +79,100 @@ correct:0,
 img:"q12.jpg"
 }
 ];
+
+// TIMER (après quiz défini)
+setInterval(()=>{
+  temps++;
+  document.getElementById("info").innerHTML =
+  "Question "+(q+1)+"/"+quiz.length+
+  " | ⏱ "+temps+"s | ❌ "+erreurs;
+},1000);
+
+// SON
+let ctx;
+function beep(f=600,d=80){
+  try{
+    if(!ctx) ctx=new(window.AudioContext||window.webkitAudioContext)();
+    let o=ctx.createOscillator();
+    let g=ctx.createGain();
+    o.frequency.value=f;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    setTimeout(()=>o.stop(),d);
+  }catch(e){}
+}
+
+function good(){beep(700,80);setTimeout(()=>beep(900,120),80);}
+function bad(){beep(200,120);}
+function click(){beep(500,40);}
+
+function loadQuestion(){
+  answered=false;
+
+  document.getElementById("photo").style.display="none";
+  document.getElementById("feedback").innerHTML="";
+
+  let current=quiz[q];
+
+  document.getElementById("question").innerHTML=current.q;
+
+  let html="";
+  current.a.forEach((rep,i)=>{
+    html+=`<button onclick="check(${i})">${rep}</button>`;
+  });
+
+  document.getElementById("answers").innerHTML=html;
+}
+
+function check(i){
+  if(answered) return;
+
+  let current=quiz[q];
+  click();
+
+  if(i!==current.correct){
+    erreurs++;
+    bad();
+    document.getElementById("feedback").innerHTML="Mauvaise réponse";
+    setTimeout(loadQuestion,900);
+    return;
+  }
+
+  answered=true;
+  score++;
+  good();
+
+  document.getElementById("feedback").innerHTML="Bonne réponse";
+
+  let img=document.getElementById("photo");
+  img.src=current.img;
+  img.style.display="block";
+
+  setTimeout(()=>{
+    q++;
+    if(q>=quiz.length){
+      finish();
+    } else {
+      loadQuestion();
+    }
+  },700);
+}
+
+function finish(){
+
+  let code="ECHEC";
+  if(score>=9) code="LYNX1940";
+  else if(score>=7) code="RESISTANCE";
+
+  document.getElementById("question").innerHTML="FIN DU QUIZ";
+  document.getElementById("answers").innerHTML="";
+
+  document.getElementById("result").innerHTML=
+  "Score : "+score+"/"+quiz.length+"<br>"+
+  "Erreurs : "+erreurs+"<br>"+
+  "Temps : "+temps+"s<br><br>"+
+  "CODE FINAL : <b>"+code+"</b>";
+}
+
+loadQuestion();
