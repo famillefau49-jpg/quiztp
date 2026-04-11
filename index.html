@@ -87,12 +87,15 @@ let answered = false;
 
 let musicStarted = false;
 
-// musique au premier clic
+// musique
 document.body.addEventListener("click", ()=>{
   if(!musicStarted){
     let bgm = document.getElementById("bgm");
     bgm.volume = 0.25;
-    bgm.play().catch(()=>{});
+    let playPromise = bgm.play();
+    if(playPromise !== undefined){
+      playPromise.catch(()=>{});
+    }
     musicStarted = true;
   }
 },{once:true});
@@ -104,63 +107,26 @@ setInterval(()=>{
   temps++;
 },1000);
 
-// AUDIO doux
-let ctx;
-document.body.addEventListener("click", ()=>{
-  if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
-},{once:true});
-
-function softSound(freq,duration,type="sine",volume=0.05){
-  try{
-    let o=ctx.createOscillator();
-    let g=ctx.createGain();
-    o.type=type;
-    o.frequency.value=freq;
-    g.gain.value=volume;
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    setTimeout(()=>o.stop(),duration);
-  }catch(e){}
-}
-
+// confettis
 function miniConfetti(){
   confetti({ particleCount: 20, spread: 50, origin:{y:0.6} });
 }
 
+// bonne réponse
 function good(){
-  softSound(880,120);
-  setTimeout(()=>softSound(1320,140),100);
   miniConfetti();
 }
 
-function bad(){
-  softSound(220,180);
-}
-
-function click(){
-  softSound(600,60);
-}
-
-// FIN
-function winEffect(){
-  let end = Date.now()+2000;
-  (function frame(){
-    confetti({ particleCount:5, spread:80, origin:{y:0.6} });
-    if(Date.now()<end) requestAnimationFrame(frame);
-  })();
-}
-
-// QUESTIONS (ta version conservée)
+// QUESTIONS
 const quiz=[
 
 {q:"En quelle année a eu lieu le 1er Trou Perdu ?",a:["2014","2015","2016"],correct:1,img:"q1.jpg"},
 {q:"Quel est le plat emblématique du samedi soir ?",a:["Raclette","Tartiflette","Pizza"],correct:1,img:"q2.jpg"},
-{q:"Qui anime les supers karaoké ?",a:["Powerdance et Evann","DJ Max","Léo"],correct:0,img:"q3.jpg"},
+{q:"Qui anime les karaoké ?",a:["Powerdance et Evann","DJ Max","Léo"],correct:0,img:"q3.jpg"},
 {q:"Qui est la meilleure pâtissière ?",a:["Mamie Lucette","Julie","Sophie"],correct:0,img:"q4.jpg"},
 {q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:["Les balles de tennis","Jonathan","Les bananes"],correct:0,img:"q5.jpg"},
 {q:"Qui était Olga ?",a:["Une géocacheuse","Une prostituée","Une espionne"],correct:1,img:"q6.jpg"},
-{q:"Qui a fait le gâteau d'anniversaire pour Papi Gérard ?",a:["Océane","Julie","Louis"],correct:0,img:"q7.jpg"},
+{q:"Qui a fait le gâteau de Papi Gérard ?",a:["Océane","Julie","Louis"],correct:0,img:"q7.jpg"},
 {q:"Qu'ont planté les géocacheurs ?",a:["Carottes","Patates","Arbres"],correct:1,img:"q8.jpg"},
 {q:"Prénom de rippe89 et Martholex ?",a:["Caroline et Alexandra","Julie et Sophie","Marie et Claire"],correct:0,img:"q9.jpg"},
 {q:"Quelle boisson coule en abondance ?",a:["Coca","Bière","Eau"],correct:1,img:"q10.jpg"},
@@ -170,7 +136,7 @@ const quiz=[
 {q:"Qui a marqué les esprits ?",a:["Alcyona","Valou valou","Les Lynx"],correct:0,img:"q14.jpg"},
 {q:"Qui s'est déguisé en pop-corn ?",a:["Guessourilles","Marysmocky","Kakacon"],correct:0,img:"q15.jpg"},
 {q:"Qui a pédalé le plus ?",a:["Maryphil21","Kiwi","Pikachu"],correct:0,img:"q16.jpg"},
-{q:"First To Will Attend 2025 ?",a:["Justnous","Bonnechasse","Coordinatus"],correct:2,img:"q17.jpg"},
+{q:"First To Will Attend 2025 ?",a:["Justnous","Bonnechasse","Coordinatus"],correct:0,img:"q17.jpg"},
 {q:"Doigts écureuils ?",a:["Wragglers","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
 {q:"Station service ?",a:["Cricridamour","fina18","Chrisde"],correct:1,img:"q19.jpg"},
 {q:"Brasseurs ?",a:["Fina18 et Chrisde","Shoot","Djesseling"],correct:0,img:"q20.jpg"},
@@ -201,15 +167,14 @@ function loadQuestion(){
 function check(i){
   if(answered) return;
   answered=true;
-  click();
 
   let c=quiz[q];
   document.querySelectorAll("#answers button").forEach(b=>b.disabled=true);
 
   if(i!==c.correct){
     erreurs++;
-    bad();
     document.getElementById("feedback").innerHTML="❌ Mauvaise réponse";
+    document.getElementById("nextBtn").style.display="block";
     return;
   }
 
@@ -226,18 +191,22 @@ function check(i){
 }
 
 function nextQuestion(){
-  click();
   q++;
 
   if(q>=quiz.length){
-    document.getElementById("question").innerHTML="🏁 FIN";
+
+    let code="ECHEC";
+    if(score>=9) code="LYNX1940";
+    else if(score>=7) code="RESISTANCE";
+
+    document.getElementById("question").innerHTML="🏁 FIN DU QUIZ";
     document.getElementById("answers").innerHTML="";
     document.getElementById("photo").style.display="none";
 
     document.getElementById("result").innerHTML=
     "Score : "+score+"/"+quiz.length;
 
-    winEffect();
+    confetti({particleCount:100,spread:80});
     return;
   }
 
