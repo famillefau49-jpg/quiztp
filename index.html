@@ -1,265 +1,74 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Trou Perdu</title>
-
-<style>
-body{
-  margin:0;
-  font-family: Arial;
-  background: linear-gradient(160deg,#1e4027,#7a5421);
-  color:white;
-  text-align:center;
-  padding:10px;
-}
-
-.card{
-  max-width:500px;
-  margin:auto;
-  background:#1b1b1b;
-  border-radius:20px;
-  padding:15px;
-}
-
-button{
-  width:100%;
-  margin-top:10px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#4caf50;
-  color:white;
-  font-size:15px;
-}
-
-img{
-  width:100%;
-  margin-top:10px;
-  display:none;
-  border-radius:10px;
-}
-
-#feedback{
-  margin-top:10px;
-  font-weight:bold;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="card">
-
-<h2>🎉 Quiz Trou Perdu</h2>
-
-<div id="info"></div>
-
-<div id="question"></div>
-<div id="answers"></div>
-
-<div id="feedback"></div>
-
-<img id="photo">
-
-<button id="nextBtn" onclick="nextQuestion()" style="display:none;">Suivant</button>
-
-<div id="result"></div>
-
-</div>
-
-<script>
-
-let q = 0;
-let score = 0;
-let erreurs = 0;
-let temps = 0;
-let answered = false;
-
-setInterval(()=>{
-  temps++;
-  document.getElementById("info").innerHTML =
-  "Question "+(q+1)+"/"+quiz.length+
-  " | ⏱ "+temps+"s | ❌ "+erreurs;
-},1000);
-
-// SONS
-let ctx;
-function beep(f=600,d=80){
-  try{
-    if(!ctx) ctx=new(window.AudioContext||window.webkitAudioContext)();
-    let o=ctx.createOscillator();
-    let g=ctx.createGain();
-    o.frequency.value=f;
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    setTimeout(()=>o.stop(),d);
-  }catch(e){}
-}
-
-function good(){beep(700,80);setTimeout(()=>beep(900,120),80);}
-function bad(){beep(200,120);}
-function click(){beep(500,40);}
-
-// QUESTIONS
 const quiz=[
-
 {
 q:"En quelle année a eu lieu le 1er Trou Perdu ?",
 a:["2014","2015","2016"],
 correct:1,
 img:"q1.jpg"
 },
-
 {
 q:"Quel est le plat emblématique du samedi soir ?",
 a:["Raclette","Tartiflette","Pizza"],
 correct:1,
 img:"q2.jpg"
 },
-
 {
 q:"Qui anime les supers karaoké ?",
-a:["Powerdance","DJ Max","Léo"],
+a:["Powerdance et Evann","DJ Max","Léo"],
 correct:0,
 img:"q3.jpg"
 },
-
 {
 q:"Qui est la meilleure pâtissière ?",
-a:["Mamie Lucette","Julie","Sophie"],
+a:["Mamie Lucette","Mamie Julie","Mamie Sophie"],
 correct:0,
 img:"q4.jpg"
 },
-
 {
 q:"Qu'est-ce qui est jaune au Trou Perdu ?",
 a:["Les balles de tennis","Jonathan","Les bananes"],
 correct:0,
 img:"q5.jpg"
 },
-
 {
 q:"Qui était Olga ?",
 a:["Une géocacheuse","Une prostituée","Une espionne"],
 correct:1,
 img:"q6.jpg"
 },
-
 {
 q:"Qui a fait le gâteau pour Papi Gérard ?",
-a:["Océane","Julie","Mamie Lucette"],
+a:["Océane","Julie","Justine"],
 correct:0,
 img:"q7.jpg"
 },
-
 {
 q:"Qu'ont planté les géocacheurs la première année ?",
 a:["Carottes","Patates","Arbres"],
 correct:1,
 img:"q8.jpg"
 },
-
 {
 q:"Prénom de rippe89 et Martholex ?",
 a:["Caroline et Alexandra","Julie et Sophie","Marie et Claire"],
 correct:0,
 img:"q9.jpg"
 },
-
 {
 q:"Quelle boisson coule en abondance ?",
 a:["Coca","Bière","Eau"],
 correct:1,
 img:"q10.jpg"
+},
+{
+q:"Qu'est-ce qui s'est envolé en 2025 ?",
+a:["Des lanternes","Des ballons","Des oiseaux"],
+correct:1,
+img:"q11.jpg"
+},
+{
+q:"Quelle surprise a fait Laurent en 2015 ?",
+a:["Un feu d'artifice","Un concert","Des lanternes"],
+correct:0,
+img:"q12.jpg"
 }
-
 ];
-
-function loadQuestion(){
-  answered=false;
-
-  document.getElementById("photo").style.display="none";
-  document.getElementById("feedback").innerHTML="";
-  document.getElementById("nextBtn").style.display="none";
-
-  let current=quiz[q];
-
-  document.getElementById("question").innerHTML=current.q;
-
-  let html="";
-  current.a.forEach((rep,i)=>{
-    html+=`<button onclick="check(${i})">${rep}</button>`;
-  });
-
-  document.getElementById("answers").innerHTML=html;
-}
-
-function check(i){
-  if(answered) return;
-
-  let current=quiz[q];
-  click();
-
-  // ERREUR
-  if(i!==current.correct){
-    erreurs++;
-    bad();
-
-    document.getElementById("feedback").innerHTML=
-    "❌ Mauvaise réponse → recommence";
-
-    setTimeout(loadQuestion,1000);
-    return;
-  }
-
-  // BONNE REPONSE
-  answered=true;
-  score++;
-  good();
-
-  document.getElementById("feedback").innerHTML="✔ Bonne réponse";
-
-  let img=document.getElementById("photo");
-  img.src=current.img;
-  img.style.display="block";
-
-  document.getElementById("nextBtn").style.display="block";
-}
-
-function nextQuestion(){
-  click();
-  q++;
-
-  if(q>=quiz.length){
-
-    let code="ECHEC";
-
-    if(score>=9) code="LYNX1940";
-    else if(score>=7) code="RESISTANCE";
-
-    document.getElementById("question").innerHTML="MISSION TERMINÉE";
-    document.getElementById("answers").innerHTML="";
-    document.getElementById("photo").style.display="none";
-
-    document.getElementById("result").innerHTML=
-    "Score : "+score+"/"+quiz.length+"<br>"+
-    "Erreurs : "+erreurs+"<br>"+
-    "Temps : "+temps+"s<br><br>"+
-    "🔐 CODE FINAL : <b>"+code+"</b>";
-
-    return;
-  }
-
-  loadQuestion();
-}
-
-loadQuestion();
-
-</script>
-
-</body>
-</html>
