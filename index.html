@@ -23,6 +23,12 @@ body{
   background:#1b1b1b;
   border-radius:20px;
   padding:15px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+  transition:0.3s;
+}
+
+.card.stress{
+  box-shadow:0 0 20px red;
 }
 
 button{
@@ -45,9 +51,20 @@ img{
   border-radius:10px;
 }
 
-#feedback{
-  margin-top:10px;
-  font-weight:bold;
+#feedback{ margin-top:10px;font-weight:bold; }
+
+#progressBar{
+  height:10px;
+  background:#333;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+#progress{
+  height:10px;
+  background:#4caf50;
+  width:0%;
+  border-radius:10px;
 }
 </style>
 </head>
@@ -55,91 +72,39 @@ img{
 <body>
 
 <audio id="bgm" loop>
-  <source src="https://cdn.pixabay.com/download/audio/2022/10/30/audio_7a3f2b0c2a.mp3?filename=happy-upbeat-ambience-121746.mp3">
+  <source src="https://cdn.pixabay.com/download/audio/2022/10/30/audio_7a3f2b0c2a.mp3">
 </audio>
 
 <div class="card">
 
 <h2>🎉 Quiz Trou Perdu</h2>
 
-<div id="info"></div>
+<div id="progressBar"><div id="progress"></div></div>
 
+<div id="info"></div>
 <div id="question"></div>
 <div id="answers"></div>
-
 <div id="feedback"></div>
-
 <img id="photo">
-
 <button id="nextBtn" onclick="nextQuestion()" style="display:none;">Suivant</button>
-
 <div id="result"></div>
 
 </div>
 
 <script>
 
-let q = 0;
-let score = 0;
-let erreurs = 0;
-let temps = 0;
-let answered = false;
+// VARIABLES
+let q=0, score=0, erreurs=0, temps=0;
+let answered=false;
+let timerQuestion;
+let tempsQuestion=10;
 
-let musicStarted = false;
-let ctx;
-
-// MUSIQUE + AUDIO CONTEXT
-document.body.addEventListener("click", ()=>{
-  if(!musicStarted){
-    let bgm = document.getElementById("bgm");
-    bgm.volume = 0.25;
-    let playPromise = bgm.play();
-    if(playPromise !== undefined){
-      playPromise.catch(()=>{});
-    }
-    musicStarted = true;
+// MELANGE
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
   }
-
-  if(!ctx){
-    ctx = new (window.AudioContext||window.webkitAudioContext)();
-  }
-},{once:true});
-
-// INFO TOP
-setInterval(()=>{
-  document.getElementById("info").innerHTML =
-  "Question "+(q+1)+"/"+quiz.length+
-  " | ⏱ "+temps+"s | ❌ "+erreurs;
-  temps++;
-},1000);
-
-// SON MIGNON
-function cuteClickSound(){
-  if(!ctx) return;
-
-  let o = ctx.createOscillator();
-  let g = ctx.createGain();
-
-  o.type = "sine";
-  o.frequency.value = 900;
-
-  g.gain.value = 0.03;
-  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
-
-  o.connect(g);
-  g.connect(ctx.destination);
-
-  o.start();
-  o.stop(ctx.currentTime + 0.08);
-}
-
-// CONFETTIS
-function miniConfetti(){
-  confetti({ particleCount: 20, spread: 50, origin:{y:0.6} });
-}
-
-function good(){
-  miniConfetti();
 }
 
 // QUESTIONS
@@ -152,32 +117,39 @@ const quiz=[
 {q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:["Les balles de tennis","Jonathan","Les bananes"],correct:0,img:"q5.jpg"},
 {q:"Qui était Olga au premier TP ?",a:["Une géocacheuse","Une prostituée","Une espionne"],correct:1,img:"q6.jpg"},
 {q:"Qui a fait le gâteau d'anniversaire de Papi Gérard ?",a:["Océane","Julie","Louis"],correct:0,img:"q7.jpg"},
-{q:"Qu'ont planté les géocacheurs la première année?",a:["Carottes","Patates","Arbres"],correct:1,img:"q8.jpg"},
-{q:"Quels sont les Prénom sde rippe89 et Martholex ?",a:["Caroline et Alexandra","Julie et Sophie","Marie et Claire"],correct:0,img:"q9.jpg"},
+{q:"Qu'ont planté les géocacheurs la première année ?",a:["Carottes","Patates","Arbres"],correct:1,img:"q8.jpg"},
+{q:"Quels sont les prénoms de rippe89 et Martholex ?",a:["Caroline et Alexandra","Julie et Sophie","Marie et Claire"],correct:0,img:"q9.jpg"},
 {q:"Quelle boisson coule en abondance ?",a:["Coca","Bière","Eau"],correct:1,img:"q10.jpg"},
 {q:"Qu'est-ce qui s'est envolé en 2025 ?",a:["Les ballons","Les clés","Les chapeaux"],correct:0,img:"q11.jpg"},
 {q:"Quelle surprise a fait Laurent en 2025 ?",a:["Un feu d’artifice","Un concert","Un gâteau géant"],correct:0,img:"q12.jpg"},
 {q:"Qui a gagné beaucoup d'argent lors des soirées ?",a:["team nano89200","Olga","Les Lynx"],correct:0,img:"q13.jpg"},
 {q:"Qui a montré son soutien-gorge ?",a:["Alcyona","Valou valou","Les Lynx"],correct:0,img:"q14.jpg"},
-{q:"Qui s'est déguisé en boite de pop-corn ?",a:["Guessourilles","Marysmocky","Kakacon"],correct:0,img:"q15.jpg"},
-{q:"Qui a le plus pédale lors d'une night au trou perdu ?",a:["Maryphil21","Kiwi","Pikachu"],correct:0,img:"q16.jpg"},
+{q:"Qui s'est déguisé en boîte de pop-corn ?",a:["Guessourilles","Marysmocky","Kakacon"],correct:0,img:"q15.jpg"},
+{q:"Qui a le plus pédalé lors d'une night au Trou Perdu ?",a:["Maryphil21","Kiwi","Pikachu"],correct:0,img:"q16.jpg"},
 {q:"Qui a fait le plus de First To Will Attend 2025 ?",a:["Justnous","Bonnechasse","Coordinatus"],correct:0,img:"q17.jpg"},
-{q:"Qui met des doits dans le c** aux écureuils ?",a:["Wragglers","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
+{q:"Qui met des doigts dans le c** aux écureuils ?",a:["Wragglers","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
 {q:"Qui est le créateur de la cache station service qui servait de l'alcool ?",a:["Cricridamour","fina18","Chrisde"],correct:1,img:"q19.jpg"},
 {q:"Qui sont les Brasseurs des tp ?",a:["Fina18 et Chrisde","Shoot","Djesseling"],correct:0,img:"q20.jpg"},
-{q:"Qui nous a organisé des m&g mémorable ? ",a:["Marcolo","Olga","Koouye"],correct:2,img:"q21.jpg"}
+{q:"Qui nous a organisé des m&g mémorables ?",a:["Marcolo","Olga","Koouye"],correct:2,img:"q21.jpg"}
 
 ];
 
+// TIMER GLOBAL
+let globalTimer=setInterval(()=>{
+  document.getElementById("info").innerHTML =
+  "Question "+(q+1)+"/"+quiz.length+
+  " | ⏱ "+temps+"s | ❌ "+erreurs;
+  temps++;
+},1000);
+
+// LOAD QUESTION
 function loadQuestion(){
   answered=false;
-
   document.getElementById("feedback").innerHTML="";
   document.getElementById("nextBtn").style.display="none";
 
   let img=document.getElementById("photo");
   img.style.display="none";
-  img.src="";
 
   let c=quiz[q];
   document.getElementById("question").innerHTML=c.q;
@@ -186,33 +158,55 @@ function loadQuestion(){
   c.a.forEach((r,i)=>{
     html+=`<button onclick="check(${i})">${r}</button>`;
   });
-
   document.getElementById("answers").innerHTML=html;
+
+  // PROGRESS
+  document.getElementById("progress").style.width =
+  (q/quiz.length)*100+"%";
+
+  // TIMER QUESTION
+  tempsQuestion=10;
+  timerQuestion=setInterval(()=>{
+    tempsQuestion--;
+
+    if(tempsQuestion<=3){
+      document.querySelector(".card").classList.add("stress");
+    }
+
+    if(tempsQuestion<=0){
+      clearInterval(timerQuestion);
+      erreurs++;
+      document.getElementById("feedback").innerHTML="⏱ Temps écoulé";
+      document.querySelectorAll("#answers button").forEach(b=>b.disabled=true);
+      setTimeout(loadQuestion,1000);
+    }
+  },1000);
 }
 
+// CHECK
 function check(i){
   if(answered) return;
   answered=true;
-
-  cuteClickSound();
+  clearInterval(timerQuestion);
 
   let c=quiz[q];
-  document.querySelectorAll("#answers button").forEach(b=>b.disabled=true);
+  let buttons=document.querySelectorAll("#answers button");
 
-  if(i !== c.correct){
+  buttons.forEach((b,idx)=>{
+    b.disabled=true;
+    if(idx===c.correct) b.style.background="#2ecc71";
+    else if(idx===i) b.style.background="#e74c3c";
+  });
+
+  if(i!==c.correct){
     erreurs++;
     document.getElementById("feedback").innerHTML="❌ Mauvaise réponse";
-
-    setTimeout(()=>{
-      loadQuestion(); // recommence la même question
-    },1000);
-
+    setTimeout(loadQuestion,1500);
     return;
   }
 
   score++;
-  good();
-
+  confetti({particleCount:30,spread:60});
   document.getElementById("feedback").innerHTML="✔ Bonne réponse";
 
   let img=document.getElementById("photo");
@@ -222,26 +216,30 @@ function check(i){
   document.getElementById("nextBtn").style.display="block";
 }
 
+// NEXT
 function nextQuestion(){
-  cuteClickSound();
   q++;
+  document.querySelector(".card").classList.remove("stress");
 
   if(q>=quiz.length){
+    clearInterval(globalTimer);
 
-    document.getElementById("question").innerHTML="🏁 FIN DU QUIZ";
+    document.getElementById("question").innerHTML="🏁 FIN";
     document.getElementById("answers").innerHTML="";
     document.getElementById("photo").style.display="none";
 
     document.getElementById("result").innerHTML=
     "Score : "+score+"/"+quiz.length;
 
-    confetti({particleCount:120, spread:90});
+    confetti({particleCount:150,spread:100});
     return;
   }
 
   loadQuestion();
 }
 
+// START
+shuffle(quiz);
 loadQuestion();
 
 </script>
