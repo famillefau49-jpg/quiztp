@@ -36,7 +36,12 @@ button{
   color:white;
 }
 
-img{width:100%;margin-top:10px;display:none;border-radius:10px;}
+img{
+  width:100%;
+  margin-top:10px;
+  display:none;
+  border-radius:10px;
+}
 
 #progressBar{height:10px;background:#333;border-radius:10px;margin:10px 0;}
 #progress{height:10px;background:#4caf50;width:0%;border-radius:10px;}
@@ -81,10 +86,10 @@ img{width:100%;margin-top:10px;display:none;border-radius:10px;}
 let q=0, score=0, erreurs=0;
 let answered=false;
 
-// QUESTIONS VERROUILLÉES
+// QUESTIONS
 const quiz = Object.freeze([
 Object.freeze({q:"Qu'est-ce qui a le plus changé au TP ?",a:Object.freeze(["Le hangar","Le terrain","Les tentes"]),correct:0,img:"q1.jpg"}),
-Object.freeze({q:"Qui a failli tomber de son vélo au TP 2 ?",a:Object.freeze(["LeVan51","Tiaré02","Jeredim"]),correct:0,img:"q4.jpg"}),
+Object.freeze({q:"Qui a failli tomber de son vélo au TP 2 ?",a:Object.freeze(["maria", "LeVan51","Tiaré02","Jeredim"]),correct:0,img:"q4.jpg"}),
 Object.freeze({q:"Pourquoi les gendarmes sont venus pendant la T5 ?",a:Object.freeze(["Ils ont eu peur que rippe89 se blesse","Un exercice de crash d’avion","Ce sont des géocacheurs"]),correct:0,img:"q7.jpg"}),
 Object.freeze({q:"Qui anime les karaoké ?",a:Object.freeze(["Powerdance et Evann","DJ Max","Léo"]),correct:0,img:"q3.jpg"}),
 Object.freeze({q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:Object.freeze(["Les balles de tennis","Jonathan","Les bananes"]),correct:0,img:"q5.jpg"}),
@@ -110,13 +115,14 @@ setInterval(()=>{
   "Question "+(q+1)+"/"+quiz.length+" | ❌ "+erreurs;
 },500);
 
-// LOAD QUESTION
+// LOAD
 function loadQuestion(){
   answered=false;
 
   document.getElementById("feedback").innerHTML="";
   document.getElementById("nextBtn").style.display="none";
   document.getElementById("puzzle").style.display="none";
+  document.getElementById("photo").style.display="none";
 
   let c=quiz[q];
 
@@ -162,6 +168,12 @@ function check(i){
   score++;
   confetti({particleCount:30,spread:60});
   document.getElementById("feedback").innerHTML="✔ Bonne réponse";
+
+  // ✅ IMAGE FIX
+  let img=document.getElementById("photo");
+  img.src=c.img;
+  img.style.display="block";
+
   document.getElementById("nextBtn").style.display="block";
 }
 
