@@ -36,6 +36,8 @@ button{
   color:white;
 }
 
+button:disabled{ background:#333; }
+
 img{
   width:100%;
   margin-top:10px;
@@ -46,18 +48,7 @@ img{
 #progressBar{height:10px;background:#333;border-radius:10px;margin:10px 0;}
 #progress{height:10px;background:#4caf50;width:0%;border-radius:10px;}
 
-#puzzle{
-  display:grid;
-  grid-template-columns: repeat(3,1fr);
-  gap:5px;
-}
-
-.piece{
-  width:100%;
-  aspect-ratio:1;
-  background-size:300% 300%;
-  border-radius:8px;
-}
+#feedback{margin-top:10px;font-weight:bold;}
 </style>
 </head>
 
@@ -72,7 +63,6 @@ img{
 <div id="info"></div>
 <div id="question"></div>
 <div id="answers"></div>
-<div id="puzzle" style="display:none;"></div>
 <div id="feedback"></div>
 <img id="photo">
 <button id="nextBtn" onclick="nextQuestion()" style="display:none;">Suivant</button>
@@ -82,17 +72,17 @@ img{
 
 <script>
 
-// VARIABLES
 let q=0, score=0, erreurs=0;
 let answered=false;
 
 // QUESTIONS
 const quiz = Object.freeze([
+
 Object.freeze({q:"Qu'est-ce qui a le plus changé au TP ?",a:Object.freeze(["Le hangar","Le terrain","Les tentes"]),correct:0,img:"q1.jpg"}),
-Object.freeze({q:"Qui a failli tomber de son vélo au TP 2 ?",a:Object.freeze(["maria", "LeVan51","Tiaré02","Jeredim"]),correct:0,img:"q4.jpg"}),
-Object.freeze({q:"Pourquoi les gendarmes sont venus pendant la T5 ?",a:Object.freeze(["Ils ont eu peur que rippe89 se blesse","Un exercice de crash d’avion","Ce sont des géocacheurs"]),correct:1,img:"q7.jpg"}),
+Object.freeze({q:"Qui a failli tomber de son vélo au TP 2 ?",a:Object.freeze(["LeVan51","Tiaré02","Jeredim"]),correct:0,img:"q4.jpg"}),
+Object.freeze({q:"Pourquoi les gendarmes sont venus pendant la T5 ?",a:Object.freeze(["Ils ont eu peur que rippe89 se blesse","Un exercice de crash d’avion","Ce sont des géocacheurs"]),correct:0,img:"q7.jpg"}),
 Object.freeze({q:"Qui anime les karaoké ?",a:Object.freeze(["Powerdance et Evann","DJ Max","Léo"]),correct:0,img:"q3.jpg"}),
-Object.freeze({q:"Quel a ete le thème de déguisement au trou perdu 8",a:Object.freeze(["la casa de papel","alice","Le jaune"]),correct:1,img:"q5.jpg"}),
+Object.freeze({q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:Object.freeze(["Les balles de tennis","Jonathan","Les bananes"]),correct:0,img:"q5.jpg"}),
 Object.freeze({q:"Qui était Olga au premier TP ?",a:Object.freeze(["Une géocacheuse","Une prostituée","Une espionne"]),correct:1,img:"q6.jpg"}),
 Object.freeze({q:"Quels sont les prénoms de rippe89 et Martholex ?",a:Object.freeze(["Caroline et Alexandra","Julie et Sophie","Marie et Claire"]),correct:0,img:"q9.jpg"}),
 Object.freeze({q:"Quelle boisson coule en abondance ?",a:Object.freeze(["Coca","Bière","Eau"]),correct:1,img:"q10.jpg"}),
@@ -106,8 +96,14 @@ Object.freeze({q:"Qui a fait le plus de \"First To Will Attend\" en 2025 ?",a:Ob
 Object.freeze({q:"Qui met des doigts dans le c** aux écureuils ?",a:Object.freeze(["Wragglers","Godedroi","Shoot"]),correct:0,img:"q18.jpg"}),
 Object.freeze({q:"Qui est le créateur de la cache station service qui servait de l'alcool ?",a:Object.freeze(["Cricridamour","fina18","Chrisde"]),correct:1,img:"q19.jpg"}),
 Object.freeze({q:"Qui sont les brasseurs des TP ?",a:Object.freeze(["Fina18 et Chrisde","Shoot","Djesseling"]),correct:0,img:"q20.jpg"}),
-Object.freeze({q:"Qui nous a organisé des M&G mémorables ?",a:Object.freeze(["Marcolo","Olga","Koouye"]),correct:2,img:"q21.jpg"})
+Object.freeze({q:"Qui nous a organisé des M&G mémorables ?",a:Object.freeze(["Marcolo","Olga","Koouye"]),correct:2,img:"q21.jpg"}),
 Object.freeze({q:"Quelle star est venu au tp ?",a:Object.freeze(["celine dion","signal wish","james bond"]),correct:1,img:"q22.jpg"}),
+Object.freeze({q:"Dans un event “Trou Perdu”, le plus important c’est :",a:Object.freeze(["Le nombre de caches trouvées","L’ambiance et la convivialité","Avoir du réseau"]),correct:1,img:"q23.jpg"}),
+Object.freeze({q:"Lors d’un Trou Perdu, tu risques de :",a:Object.freeze(["Manger avec d’autres géocacheurs","Dormir dehors","Faire une cache de nuit","Tout ça à la fois"]),correct:3,img:"q24.jpg"}),
+Object.freeze({q:"Qui a pris un bain de balles ?",a:Object.freeze(["Annie","Bruno","Sylvianne","Jean-Paul"]),correct:3,img:"q25.jpg"}),
+Object.freeze({q:"Qui est maggyver ?",a:Object.freeze(["Papi Gérard","Jules","Marcel"]),correct:0,img:"q26.jpg"}),
+Object.freeze({q:"Quel a ete le thème de déguisement au trou perdu 8 ?",a:Object.freeze(["tu las si non la prehistoire","alice","casade papel"]),correct:1,img:"q27.jpg"})
+
 ]);
 
 // INFO
@@ -122,16 +118,9 @@ function loadQuestion(){
 
   document.getElementById("feedback").innerHTML="";
   document.getElementById("nextBtn").style.display="none";
-  document.getElementById("puzzle").style.display="none";
   document.getElementById("photo").style.display="none";
 
   let c=quiz[q];
-
-  // PUZZLE question 8
-  if(q===7){
-    loadPuzzle("q8.jpg");
-    return;
-  }
 
   document.getElementById("question").innerHTML=c.q;
 
@@ -170,72 +159,11 @@ function check(i){
   confetti({particleCount:30,spread:60});
   document.getElementById("feedback").innerHTML="✔ Bonne réponse";
 
-  // ✅ IMAGE FIX
   let img=document.getElementById("photo");
   img.src=c.img;
   img.style.display="block";
 
   document.getElementById("nextBtn").style.display="block";
-}
-
-// PUZZLE
-function loadPuzzle(img){
-  let puzzle=document.getElementById("puzzle");
-  puzzle.style.display="grid";
-  document.getElementById("answers").innerHTML="";
-  document.getElementById("question").innerHTML="🧩 Reconstitue l’image";
-
-  let pieces=[];
-
-  for(let i=0;i<9;i++){
-    let div=document.createElement("div");
-    div.className="piece";
-    div.style.backgroundImage=`url(${img})`;
-
-    let x=(i%3)*50;
-    let y=Math.floor(i/3)*50;
-
-    div.style.backgroundPosition=`${x}% ${y}%`;
-    div.dataset.index=i;
-
-    pieces.push(div);
-  }
-
-  pieces.sort(()=>Math.random()-0.5);
-
-  pieces.forEach(p=>{
-    puzzle.appendChild(p);
-    p.draggable=true;
-
-    p.ondragstart=e=>e.dataTransfer.setData("text",p.dataset.index);
-
-    p.ondrop=e=>{
-      e.preventDefault();
-      let from=document.querySelector(`[data-index='${e.dataTransfer.getData("text")}']`);
-      let temp=p.style.backgroundPosition;
-      p.style.backgroundPosition=from.style.backgroundPosition;
-      from.style.backgroundPosition=temp;
-      checkPuzzle();
-    };
-
-    p.ondragover=e=>e.preventDefault();
-  });
-}
-
-function checkPuzzle(){
-  let ok=true;
-
-  document.querySelectorAll(".piece").forEach((p,i)=>{
-    let x=(i%3)*50;
-    let y=Math.floor(i/3)*50;
-    if(p.style.backgroundPosition!==`${x}% ${y}%`) ok=false;
-  });
-
-  if(ok){
-    confetti({particleCount:100,spread:80});
-    document.getElementById("feedback").innerHTML="🧩 Puzzle réussi !";
-    document.getElementById("nextBtn").style.display="block";
-  }
 }
 
 // NEXT
@@ -245,7 +173,7 @@ function nextQuestion(){
   if(q>=quiz.length){
     document.getElementById("question").innerHTML="🏁 FIN";
     document.getElementById("answers").innerHTML="";
-    document.getElementById("puzzle").style.display="none";
+    document.getElementById("photo").style.display="none";
     document.getElementById("result").innerHTML=
     "Score : "+score+"/"+quiz.length;
     confetti({particleCount:150,spread:100});
