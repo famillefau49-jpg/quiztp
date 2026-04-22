@@ -80,43 +80,31 @@ img{width:100%;margin-top:10px;display:none;border-radius:10px;}
 // VARIABLES
 let q=0, score=0, erreurs=0;
 let answered=false;
-let timerQuestion;
 
-// MELANGE
-function shuffle(array){
-  for(let i=array.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [array[i],array[j]]=[array[j],array[i]];
-  }
-}
+// QUESTIONS VERROUILLÉES
+const quiz = Object.freeze([
+Object.freeze({q:"Qu'est-ce qui a le plus changé au TP ?",a:Object.freeze(["Le hangar","Le terrain","Les tentes"]),correct:0,img:"q1.jpg"}),
+Object.freeze({q:"Qui a failli tomber de son vélo au TP 2 ?",a:Object.freeze(["LeVan51","Tiaré02","Jeredim"]),correct:0,img:"q4.jpg"}),
+Object.freeze({q:"Pourquoi les gendarmes sont venus pendant la T5 ?",a:Object.freeze(["Ils ont eu peur que rippe89 se blesse","Un exercice de crash d’avion","Ce sont des géocacheurs"]),correct:0,img:"q7.jpg"}),
+Object.freeze({q:"Qui anime les karaoké ?",a:Object.freeze(["Powerdance et Evann","DJ Max","Léo"]),correct:0,img:"q3.jpg"}),
+Object.freeze({q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:Object.freeze(["Les balles de tennis","Jonathan","Les bananes"]),correct:0,img:"q5.jpg"}),
+Object.freeze({q:"Qui était Olga au premier TP ?",a:Object.freeze(["Une géocacheuse","Une prostituée","Une espionne"]),correct:1,img:"q6.jpg"}),
+Object.freeze({q:"Quels sont les prénoms de rippe89 et Martholex ?",a:Object.freeze(["Caroline et Alexandra","Julie et Sophie","Marie et Claire"]),correct:0,img:"q9.jpg"}),
+Object.freeze({q:"Quelle boisson coule en abondance ?",a:Object.freeze(["Coca","Bière","Eau"]),correct:1,img:"q10.jpg"}),
+Object.freeze({q:"Qu'est-ce qui s'est envolé en 2025 ?",a:Object.freeze(["Les ballons","Les clés","Les chapeaux"]),correct:0,img:"q11.jpg"}),
+Object.freeze({q:"Quelle surprise a fait Laurent en 2025 ?",a:Object.freeze(["Un feu d’artifice","Un concert","Un gâteau géant"]),correct:0,img:"q12.jpg"}),
+Object.freeze({q:"Qui a gagné beaucoup d'argent lors des soirées ?",a:Object.freeze(["team nano89200","Olga","Les Lynx"]),correct:0,img:"q13.jpg"}),
+Object.freeze({q:"Qui a montré son soutien-gorge ?",a:Object.freeze(["Alcyona","Valou valou","Les Lynx"]),correct:0,img:"q14.jpg"}),
+Object.freeze({q:"Qui s'est déguisé en boîte de pop-corn ?",a:Object.freeze(["Guessourilles","Marysmocky","Kakacon"]),correct:0,img:"q15.jpg"}),
+Object.freeze({q:"Qui a le plus pédalé lors d'une night au Trou Perdu ?",a:Object.freeze(["Maryphil21","Kiwi","Pikachu"]),correct:0,img:"q16.jpg"}),
+Object.freeze({q:"Qui a fait le plus de \"First To Will Attend\" en 2025 ?",a:Object.freeze(["Justnous","Bonnechasse","Coordinatus"]),correct:0,img:"q17.jpg"}),
+Object.freeze({q:"Qui met des doigts dans le c** aux écureuils ?",a:Object.freeze(["Wragglers","Godedroi","Shoot"]),correct:0,img:"q18.jpg"}),
+Object.freeze({q:"Qui est le créateur de la cache station service qui servait de l'alcool ?",a:Object.freeze(["Cricridamour","fina18","Chrisde"]),correct:1,img:"q19.jpg"}),
+Object.freeze({q:"Qui sont les brasseurs des TP ?",a:Object.freeze(["Fina18 et Chrisde","Shoot","Djesseling"]),correct:0,img:"q20.jpg"}),
+Object.freeze({q:"Qui nous a organisé des M&G mémorables ?",a:Object.freeze(["Marcolo","Olga","Koouye"]),correct:2,img:"q21.jpg"})
+]);
 
-// QUESTIONS
-const quiz=[
-
-{q:"Qu'est-ce qui a le plus changé au TP ?",a:["Le hangar","Le terrain","Les tentes"],correct:0,img:"q1.jpg"},
-{q:"Qui a failli tomber de son vélo au TP 2 ?",a:["LeVan51","Tiaré02","Jeredim"],correct:0,img:"q4.jpg"},
-{q:"Pourquoi les gendarmes sont venus pendant la T5 ?",a:["Ils ont eu peur que rippe89 se blesse","Un exercice de crash d’avion","Ce sont des géocacheurs"],correct:0,img:"q7.jpg"},
-
-{q:"Qui anime les karaoké ?",a:["Powerdance et Evann","DJ Max","Léo"],correct:0,img:"q3.jpg"},
-{q:"Qu'est-ce qui est jaune au Trou Perdu ?",a:["Les balles de tennis","Jonathan","Les bananes"],correct:0,img:"q5.jpg"},
-{q:"Qui était Olga au premier TP ?",a:["Une géocacheuse","Une prostituée","Une espionne"],correct:1,img:"q6.jpg"},
-{q:"Quels sont les prénoms de rippe89 et Martholex ?",a:["Caroline et Alexandra","Julie et Sophie","Marie et Claire"],correct:0,img:"q9.jpg"},
-{q:"Quelle boisson coule en abondance ?",a:["Coca","Bière","Eau"],correct:1,img:"q10.jpg"},
-{q:"Qu'est-ce qui s'est envolé en 2025 ?",a:["Les ballons","Les clés","Les chapeaux"],correct:0,img:"q11.jpg"},
-{q:"Quelle surprise a fait Laurent en 2025 ?",a:["Un feu d’artifice","Un concert","Un gâteau géant"],correct:0,img:"q12.jpg"},
-{q:"Qui a gagné beaucoup d'argent lors des soirées ?",a:["team nano89200","Olga","Les Lynx"],correct:0,img:"q13.jpg"},
-{q:"Qui a montré son soutien-gorge ?",a:["Alcyona","Valou valou","Les Lynx"],correct:0,img:"q14.jpg"},
-{q:"Qui s'est déguisé en boîte de pop-corn ?",a:["Guessourilles","Marysmocky","Kakacon"],correct:0,img:"q15.jpg"},
-{q:"Qui a le plus pédalé lors d'une night ?",a:["Maryphil21","Kiwi","Pikachu"],correct:0,img:"q16.jpg"},
-{q:"Qui a fait le plus de FTW 2025 ?",a:["Justnous","Bonnechasse","Coordinatus"],correct:0,img:"q17.jpg"},
-{q:"Qui met des doigts aux écureuils ?",a:["Wragglers","Godedroi","Shoot"],correct:0,img:"q18.jpg"},
-{q:"Qui est le créateur de la cache alcool ?",a:["Cricridamour","fina18","Chrisde"],correct:1,img:"q19.jpg"},
-{q:"Qui sont les brasseurs des TP ?",a:["Fina18 et Chrisde","Shoot","Djesseling"],correct:0,img:"q20.jpg"},
-{q:"Qui a organisé les M&G mémorables ?",a:["Marcolo","Olga","Koouye"],correct:2,img:"q21.jpg"}
-
-];
-
-// TIMER INFO
+// INFO
 setInterval(()=>{
   document.getElementById("info").innerHTML =
   "Question "+(q+1)+"/"+quiz.length+" | ❌ "+erreurs;
@@ -132,7 +120,7 @@ function loadQuestion(){
 
   let c=quiz[q];
 
-  // PUZZLE (question 8)
+  // PUZZLE question 8
   if(q===7){
     loadPuzzle("q8.jpg");
     return;
@@ -211,11 +199,9 @@ function loadPuzzle(img){
     p.ondrop=e=>{
       e.preventDefault();
       let from=document.querySelector(`[data-index='${e.dataTransfer.getData("text")}']`);
-
       let temp=p.style.backgroundPosition;
       p.style.backgroundPosition=from.style.backgroundPosition;
       from.style.backgroundPosition=temp;
-
       checkPuzzle();
     };
 
@@ -257,7 +243,6 @@ function nextQuestion(){
 }
 
 // START
-shuffle(quiz);
 loadQuestion();
 
 </script>
